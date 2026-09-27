@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>dithub · quanlybaohanhdienthoai</title>
+<style>
+:root{
+  --bg:#0d1117; --bg2:#161b22; --bg3:#010409; --border:#30363d;
+  --text:#e6edf3; --muted:#8b949e; --link:#58a6ff; --green:#3fb950; --green-bg:#238636;
+  --red:#f85149; --yellow:#d29922; --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  box-sizing:border-box;
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5;}
+a{color:var(--link);text-decoration:none;}
+button{font-family:inherit;cursor:pointer;}
+
+/* header */
+header{display:flex;align-items:center;gap:14px;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0px));background:var(--bg3);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5;}
+.logo{display:flex;align-items:center;gap:8px;font-weight:600;font-size:16px;color:var(--text);}
+.logo svg{width:26px;height:26px;}
+.searchbox{flex:1;max-width:480px;display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--muted);}
+.searchbox input{background:none;border:none;outline:none;color:var(--text);width:100%;font-size:13px;}
+.repo-crumb{color:var(--muted);font-size:15px;}
+.repo-crumb b{color:var(--text);font-weight:600;}
+
+/* layout */
+.wrap{display:flex;max-width:1280px;margin:0 auto;min-height:calc(100vh - 54px);}
+nav.side{width:230px;flex:none;border-right:1px solid var(--border);padding:20px 12px;}
+nav.side .navlabel{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:0 8px 6px;}
+nav.side button.navitem{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:none;border:none;color:var(--text);padding:7px 8px;border-radius:6px;font-size:14px;margin-bottom:2px;}
+nav.side button.navitem:hover{background:var(--bg2);}
+nav.side button.navitem.active{background:#1f6feb26;color:var(--link);font-weight:600;}
+nav.side button.navitem .count{margin-left:auto;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:0 7px;font-size:12px;color:var(--muted);}
+
+main{flex:1;min-width:0;padding:20px;}
+h1.pagetitle{font-size:20px;margin:0 0 4px;}
+.subtitle{color:var(--muted);font-size:13px;margin:0 0 18px;}
+
+/* cards / stat grid */
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:22px;}
+.statcard{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:14px;}
+.statcard .num{font-size:24px;font-weight:600;}
+.statcard .lbl{color:var(--muted);font-size:12px;margin-top:2px;}
+.statcard.ok .num{color:var(--green);}
+.statcard.bad .num{color:var(--red);}
+
+.panel{background:var(--bg3);border:1px solid var(--border);border-radius:6px;margin-bottom:22px;overflow:hidden;}
+.panel .phead{padding:10px 14px;border-bottom:1px solid var(--border);font-weight:600;font-size:13px;display:flex;justify-content:space-between;align-items:center;}
+.panel .phead .n{color:var(--muted);font-weight:400;}
+
+/* bar list for doanh thu theo thang */
+.barrow{display:grid;grid-template-columns:80px 1fr 100px;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--border);font-size:13px;}
+.barrow:last-child{border-bottom:none;}
+.bartrack{background:var(--bg2);border-radius:4px;height:8px;overflow:hidden;}
+.barfill{height:100%;background:var(--green-bg);}
+.barrow .val{text-align:right;color:var(--muted);font-family:var(--mono);font-size:12px;}
+
+/* top list */
+.toprow{display:flex;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--border);font-size:13px;}
+.toprow:last-child{border-bottom:none;}
+.toprow .badge{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1px 8px;font-size:12px;color:var(--text);}
+
+/* table */
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;background:var(--bg2);color:var(--muted);font-weight:500;padding:8px 12px;border-bottom:1px solid var(--border);white-space:nowrap;}
+td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:#1c2128;}
+.mono{font-family:var(--mono);font-size:12.5px;color:var(--muted);}
+.pill{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px;border:1px solid var(--border);}
+.pill.on{color:var(--green);border-color:#2ea04340;background:#2ea04314;}
+.pill.off{color:var(--red);border-color:#f8514940;background:#f8514914;}
+.toolbar{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;}
+.toolbar input[type=text]{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:13px;min-width:220px;}
+.toolbar input::placeholder{color:var(--muted);}
+.btn{background:var(--green-bg);color:#fff;border:1px solid #2ea04380;padding:6px 14px;border-radius:6px;font-size:13px;font-weight:500;}
+.btn:hover{background:#2ea043;}
+.btn.secondary{background:var(--bg2);color:var(--text);border:1px solid var(--border);}
+.btn.secondary:hover{background:#1c2128;}
+.empty{padding:40px 20px;text-align:center;color:var(--muted);}
+
+/* modal */
+.overlay{position:fixed;inset:0;background:#000c;display:none;align-items:center;justify-content:center;z-index:20;padding:16px;}
+.overlay.show{display:flex;}
+.modal{background:var(--bg3);border:1px solid var(--border);border-radius:8px;width:100%;max-width:420px;padding:18px;}
+.modal h3{margin:0 0 14px;font-size:15px;}
+.modal label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px;}
+.modal input,.modal select{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:7px 9px;border-radius:6px;font-size:13px;}
+.modal .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;}
+.warn{color:var(--red);font-size:12px;margin-top:8px;min-height:14px;}
+
+@media (max-width:760px){
+  .wrap{flex-direction:column;}
+  nav.side{width:100%;border-right:none;border-bottom:1px solid var(--border);display:flex;overflow-x:auto;padding:8px;gap:4px;}
+  nav.side .navlabel{display:none;}
+  nav.side button.navitem{width:auto;white-space:nowrap;}
+  table{display:block;overflow-x:auto;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38l-.01-1.49c-2.22.48-2.69-1.07-2.69-1.07-.36-.92-.89-1.16-.89-1.16-.73-.5.05-.49.05-.49.8.06 1.23.83 1.23.83.72 1.23 1.87.88 2.33.67.07-.52.28-.88.51-1.08-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.22 2.2.82a7.65 7.65 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48l-.01 2.2c0 .21.14.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+    dithub
+  </div>
+  <div class="repo-crumb">quanlybaohanhdienthoai <span style="color:var(--muted)">/</span> <b id="crumb">Dashboard</b></div>
+  <div class="searchbox">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M15.7 14.3 11.1 9.7a6 6 0 1 0-1.4 1.4l4.6 4.6ZM2 6a4 4 0 1 1 8 0 4 4 0 0 1-8 0Z"/></svg>
+    <input id="globalSearch" type="text" placeholder="Tìm theo tên, IMEI, SĐT...">
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="side">
+    <div class="navlabel">Quản lý bảo hành</div>
+    <button class="navitem active" data-tab="dashboard">📊 Dashboard</button>
+    <button class="navitem" data-tab="hang">🏷️ Hãng sản xuất <span class="count" id="cnt-hang"></span></button>
+    <button class="navitem" data-tab="sp">📱 Sản phẩm <span class="count" id="cnt-sp"></span></button>
+    <button class="navitem" data-tab="pbh">🧾 Phiếu bảo hành <span class="count" id="cnt-pbh"></span></button>
+    <button class="navitem" data-tab="kh">👤 Khách hàng <span class="count" id="cnt-kh"></span></button>
+  </nav>
+
+  <main id="main"></main>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modalBody"></div>
+</div>
+
+<script>
+// ---------- dữ liệu mẫu (in-memory, phản ánh schema trong TruyVanNC.js) ----------
+let hangsanxuat = [
+  {_id:'h1', ten_hang:'Apple'}, {_id:'h2', ten_hang:'Samsung'},
+  {_id:'h3', ten_hang:'Xiaomi'}, {_id:'h4', ten_hang:'Oppo'}, {_id:'h5', ten_hang:'Vivo'}
+];
+let sanpham = [
+  {_id:'s1', ten_san_pham:'iPhone 15 Pro', hang_id:'h1', thoi_han_bao_hanh_thang:12},
+  {_id:'s2', ten_san_pham:'iPhone 16', hang_id:'h1', thoi_han_bao_hanh_thang:12},
+  {_id:'s3', ten_san_pham:'Galaxy S24', hang_id:'h2', thoi_han_bao_hanh_thang:12},
+  {_id:'s4', ten_san_pham:'Galaxy Z Flip6', hang_id:'h2', thoi_han_bao_hanh_thang:12},
+  {_id:'s5', ten_san_pham:'Redmi Note 13', hang_id:'h3', thoi_han_bao_hanh_thang:18},
+  {_id:'s6', ten_san_pham:'Xiaomi 14', hang_id:'h3', thoi_han_bao_hanh_thang:12},
+  {_id:'s7', ten_san_pham:'Oppo Reno 12', hang_id:'h4', thoi_han_bao_hanh_thang:12},
+  {_id:'s8', ten_san_pham:'Vivo V30', hang_id:'h5', thoi_han_bao_hanh_thang:12},
+];
+let khachhang = [
+  {_id:'k1', ho_ten:'Nguyễn Văn A', so_dien_thoai:'0901234567'},
+  {_id:'k2', ho_ten:'Trần Thị B', so_dien_thoai:'0912345678'},
+  {_id:'k3', ho_ten:'Lê Văn C', so_dien_thoai:'0987654321'},
+  {_id:'k4', ho_ten:'Phạm Thị D', so_dien_thoai:'0977123456'},
+  {_id:'k5', ho_ten:'Hoàng Văn E', so_dien_thoai:'0966112233'},
+];
+let phieubaohanh = [
+  {_id:'p1', imei:'356789012340001', khach_hang_id:'k1', san_pham_id:'s3', ngay_mua:'2025-11-02', gia_ban:21500000},
+  {_id:'p2', imei:'356789012340002', khach_hang_id:'k2', san_pham_id:'s1', ngay_mua:'2026-06-15', gia_ban:29000000},
+  {_id:'p3', imei:'356789012340003', khach_hang_id:'k3', san_pham_id:'s5', ngay_mua:'2026-08-20', gia_ban:5200000},
+  {_id:'p4', imei:'356789012340004', khach_hang_id:'k1', san_pham_id:'s2', ngay_mua:'2026-09-10', gia_ban:24500000},
+  {_id:'p5', imei:'356789012340005', khach_hang_id:'k4', san_pham_id:'s4', ngay_mua:'2025-05-01', gia_ban:32000000},
+  {_id:'p6', imei:'356789012340006', khach_hang_id:'k5', san_pham_id:'s3', ngay_mua:'2026-04-18', gia_ban:20900000},
+  {_id:'p7', imei:'356789012340007', khach_hang_id:'k2', san_pham_id:'s6', ngay_mua:'2026-07-22', gia_ban:15900000},
+  {_id:'p8', imei:'356789012340008', khach_hang_id:'k3', san_pham_id:'s1', ngay_mua:'2025-09-30', gia_ban:28500000},
+  {_id:'p9', imei:'356789012340009', khach_hang_id:'k4', san_pham_id:'s7', ngay_mua:'2026-09-01', gia_ban:9200000},
+  {_id:'p10', imei:'356789012340010', khach_hang_id:'k5', san_pham_id:'s8', ngay_mua:'2026-03-11', gia_ban:8700000},
+  {_id:'p11', imei:'356789012340011', khach_hang_id:'k1', san_pham_id:'s3', ngay_mua:'2026-02-14', gia_ban:20500000},
+  {_id:'p12', imei:'356789012340012', khach_hang_id:'k2', san_pham_id:'s5', ngay_mua:'2026-08-05', gia_ban:5300000},
+];
+
+const $ = (sel,root=document)=>root.querySelector(sel);
+const $$ = (sel,root=document)=>[...root.querySelectorAll(sel)];
+const fmtVND = n => n.toLocaleString('vi-VN')+' đ';
+const fmtDate = d => new Date(d).toLocaleDateString('vi-VN');
+function hetHan(pbh){
+  const sp = sanpham.find(s=>s._id===pbh.san_pham_id);
+  if(!sp) return null;
+  const d = new Date(pbh.ngay_mua);
+  d.setMonth(d.getMonth()+sp.thoi_han_bao_hanh_thang);
+  return d;
+}
+let currentTab = 'dashboard';
+
+function updateCounts(){
+  $('#cnt-hang').textContent = hangsanxuat.length;
+  $('#cnt-sp').textContent = sanpham.length;
+  $('#cnt-pbh').textContent = phieubaohanh.length;
+  $('#cnt-kh').textContent = khachhang.length;
+}
+
+function render(){
+  updateCounts();
+  const main = $('#main');
+  if(currentTab==='dashboard') return renderDashboard(main);
+  if(currentTab==='hang') return renderHang(main);
+  if(currentTab==='sp') return renderSP(main);
+  if(currentTab==='pbh') return renderPBH(main);
+  if(currentTab==='kh') return renderKH(main);
+}
+
+// ---------- DASHBOARD (tương ứng PBH17 $facet) ----------
+function renderDashboard(main){
+  $('#crumb').textContent = 'Dashboard';
+  const now = new Date();
+  let conBH=0, hetBH=0, doanhThu=0;
+  const byProduct = {};
+  const byMonth = {};
+  phieubaohanh.forEach(p=>{
+    doanhThu += p.gia_ban;
+    const hh = hetHan(p);
+    if(hh && hh>=now) conBH++; else hetBH++;
+    byProduct[p.san_pham_id] = (byProduct[p.san_pham_id]||0)+1;
+    const d = new Date(p.ngay_mua);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    byMonth[key] = byMonth[key] || {doanh_thu:0, so_phieu:0};
+    byMonth[key].doanh_thu += p.gia_ban;
+    byMonth[key].so_phieu += 1;
+  });
+  const top5 = Object.entries(byProduct).sort((a,b)=>b[1]-a[1]).slice(0,5)
+    .map(([id,sl])=>({ten: sanpham.find(s=>s._id===id)?.ten_san_pham || '?', sl}));
+  const months = Object.entries(byMonth).sort((a,b)=>b[0].localeCompare(a[0]));
+  const maxDT = Math.max(...months.map(m=>m[1].doanh_thu), 1);
+
+  main.innerHTML = `
+    <h1 class="pagetitle">Dashboard bảo hành</h1>
+    <p class="subtitle">Tổng hợp toàn bộ dữ liệu bảo hành điện thoại (mô phỏng theo pipeline $facet PBH17)</p>
+    <div class="statgrid">
+      <div class="statcard"><div class="num">${phieubaohanh.length}</div><div class="lbl">Tổng số phiếu</div></div>
+      <div class="statcard ok"><div class="num">${conBH}</div><div class="lbl">Còn bảo hành</div></div>
+      <div class="statcard bad"><div class="num">${hetBH}</div><div class="lbl">Hết bảo hành</div></div>
+      <div class="statcard"><div class="num">${fmtVND(doanhThu)}</div><div class="lbl">Tổng doanh thu</div></div>
+    </div>
+    <div class="panel">
+      <div class="phead">Top 5 sản phẩm bán chạy <span class="n">theo số phiếu bảo hành</span></div>
+      ${top5.map(t=>`<div class="toprow"><span>${t.ten}</span><span class="badge">${t.sl} máy</span></div>`).join('')}
+    </div>
+    <div class="panel">
+      <div class="phead">Doanh thu theo tháng</div>
+      ${months.map(([k,v])=>`
+        <div class="barrow">
+          <span class="mono">${k}</span>
+          <div class="bartrack"><div class="barfill" style="width:${(v.doanh_thu/maxDT*100).toFixed(0)}%"></div></div>
+          <span class="val">${fmtVND(v.doanh_thu)}</span>
+        </div>`).join('')}
+    </div>
+  `;
+}
+
+// ---------- HÃNG SẢN XUẤT ----------
+function renderHang(main, q=''){
+  $('#crumb').textContent = 'Hãng sản xuất';
+  const rows = hangsanxuat.filter(h=>h.ten_hang.toLowerCase().includes(q.toLowerCase()));
+  main.innerHTML = `
+    <h1 class="pagetitle">Hãng sản xuất</h1>
+    <p class="subtitle">${hangsanxuat.length} hãng trong hệ thống</p>
+    <div class="toolbar">
+      <input type="text" id="q" placeholder="Tìm theo tên hãng..." value="${q}">
+      <button class="btn" id="btnAdd">+ Thêm hãng</button>
+    </div>
+    <div class="panel">
+      <table><thead><tr><th>Tên hãng</th><th>Số sản phẩm</th></tr></thead>
+      <tbody>${rows.length? rows.map(h=>{
+        const sl = sanpham.filter(s=>s.hang_id===h._id).length;
+        return `<tr><td>${h.ten_hang}</td><td>${sl}</td></tr>`;
+      }).join('') : `<tr><td colspan="2" class="empty">Không tìm thấy hãng phù hợp</td></tr>`}</tbody></table>
+    </div>`;
+  $('#q').oninput = e=>renderHang(main, e.target.value);
+  $('#btnAdd').onclick = ()=>openModal('hang');
+}
+
+// ---------- SẢN PHẨM ----------
+function renderSP(main, q=''){
+  $('#crumb').textContent = 'Sản phẩm';
+  const rows = sanpham.filter(s=>s.ten_san_pham.toLowerCase().includes(q.toLowerCase()));
+  main.innerHTML = `
+    <h1 class="pagetitle">Sản phẩm</h1>
+    <p class="subtitle">${sanpham.length} sản phẩm trong hệ thống</p>
+    <div class="toolbar">
+      <input type="text" id="q" placeholder="Tìm theo tên sản phẩm..." value="${q}">
+      <button class="btn" id="btnAdd">+ Thêm sản phẩm</button>
+    </div>
+    <div class="panel">
+      <table><thead><tr><th>Sản phẩm</th><th>Hãng</th><th>Bảo hành (tháng)</th></tr></thead>
+      <tbody>${rows.length? rows.map(s=>{
+        const h = hangsanxuat.find(x=>x._id===s.hang_id);
+        return `<tr><td>${s.ten_san_pham}</td><td>${h?h.ten_hang:'—'}</td><td>${s.thoi_han_bao_hanh_thang}</td></tr>`;
+      }).join('') : `<tr><td colspan="3" class="empty">Không tìm thấy sản phẩm phù hợp</td></tr>`}</tbody></table>
+    </div>`;
+  $('#q').oninput = e=>renderSP(main, e.target.value);
+  $('#btnAdd').onclick = ()=>openModal('sp');
+}
+
+// ---------- KHÁCH HÀNG ----------
+function renderKH(main, q=''){
+  $('#crumb').textContent = 'Khách hàng';
+  const rows = khachhang.filter(k=>k.ho_ten.toLowerCase().includes(q.toLowerCase())||k.so_dien_thoai.includes(q));
+  main.innerHTML = `
+    <h1 class="pagetitle">Khách hàng</h1>
+    <p class="subtitle">${khachhang.length} khách hàng trong hệ thống</p>
+    <div class="toolbar">
+      <input type="text" id="q" placeholder="Tìm theo tên hoặc SĐT..." value="${q}">
+      <button class="btn" id="btnAdd">+ Thêm khách hàng</button>
+    </div>
+    <div class="panel">
+      <table><thead><tr><th>Họ tên</th><th>Số điện thoại</th><th>Số máy đã mua</th></tr></thead>
+      <tbody>${rows.length? rows.map(k=>{
+        const sl = phieubaohanh.filter(p=>p.khach_hang_id===k._id).length;
+        return `<tr><td>${k.ho_ten}</td><td class="mono">${k.so_dien_thoai}</td><td>${sl}</td></tr>`;
+      }).join('') : `<tr><td colspan="3" class="empty">Không tìm thấy khách hàng phù hợp</td></tr>`}</tbody></table>
+    </div>`;
+  $('#q').oninput = e=>renderKH(main, e.target.value);
+  $('#btnAdd').onclick = ()=>openModal('kh');
+}
+
+// ---------- PHIẾU BẢO HÀNH ----------
+function renderPBH(main, q=''){
+  $('#crumb').textContent = 'Phiếu bảo hành';
+  const now = new Date();
+  const rows = phieubaohanh.filter(p=>p.imei.includes(q));
+  main.innerHTML = `
+    <h1 class="pagetitle">Phiếu bảo hành</h1>
+    <p class="subtitle">${phieubaohanh.length} phiếu trong hệ thống</p>
+    <div class="toolbar">
+      <input type="text" id="q" placeholder="Tìm theo IMEI..." value="${q}">
+      <button class="btn" id="btnAdd">+ Thêm phiếu</button>
+    </div>
+    <div class="panel">
+      <table><thead><tr><th>IMEI</th><th>Khách hàng</th><th>Sản phẩm</th><th>Ngày mua</th><th>Hết hạn BH</th><th>Trạng thái</th><th>Giá bán</th></tr></thead>
+      <tbody>${rows.length? rows.slice().sort((a,b)=>new Date(b.ngay_mua)-new Date(a.ngay_mua)).map(p=>{
+        const kh = khachhang.find(k=>k._id===p.khach_hang_id);
+        const sp = sanpham.find(s=>s._id===p.san_pham_id);
+        const hh = hetHan(p);
+        const on = hh && hh>=now;
+        return `<tr>
+          <td class="mono">${p.imei}</td>
+          <td>${kh?kh.ho_ten:'—'}</td>
+          <td>${sp?sp.ten_san_pham:'—'}</td>
+          <td>${fmtDate(p.ngay_mua)}</td>
+          <td>${hh?fmtDate(hh):'—'}</td>
+          <td><span class="pill ${on?'on':'off'}">${on?'Còn bảo hành':'Hết bảo hành'}</span></td>
+          <td>${fmtVND(p.gia_ban)}</td>
+        </tr>`;
+      }).join('') : `<tr><td colspan="7" class="empty">Không tìm thấy IMEI phù hợp</td></tr>`}</tbody></table>
+    </div>`;
+  $('#q').oninput = e=>renderPBH(main, e.target.value);
+  $('#btnAdd').onclick = ()=>openModal('pbh');
+}
+
+// ---------- MODAL THÊM (in-memory, không lưu vĩnh viễn) ----------
+function openModal(type){
+  const ov = $('#overlay'); const body = $('#modalBody');
+  const forms = {
+    hang: {title:'Thêm hãng sản xuất', fields:[{k:'ten_hang',l:'Tên hãng',t:'text'}]},
+    sp: {title:'Thêm sản phẩm', fields:[
+      {k:'ten_san_pham',l:'Tên sản phẩm',t:'text'},
+      {k:'hang_id',l:'Hãng',t:'select',opts:hangsanxuat.map(h=>[h._id,h.ten_hang])},
+      {k:'thoi_han_bao_hanh_thang',l:'Bảo hành (tháng)',t:'number'}
+    ]},
+    kh: {title:'Thêm khách hàng', fields:[{k:'ho_ten',l:'Họ tên',t:'text'},{k:'so_dien_thoai',l:'Số điện thoại',t:'text'}]},
+    pbh: {title:'Thêm phiếu bảo hành', fields:[
+      {k:'imei',l:'IMEI',t:'text'},
+      {k:'khach_hang_id',l:'Khách hàng',t:'select',opts:khachhang.map(k=>[k._id,k.ho_ten])},
+      {k:'san_pham_id',l:'Sản phẩm',t:'select',opts:sanpham.map(s=>[s._id,s.ten_san_pham])},
+      {k:'ngay_mua',l:'Ngày mua',t:'date'},
+      {k:'gia_ban',l:'Giá bán (đ)',t:'number'}
+    ]},
+  };
+  const f = forms[type];
+  body.innerHTML = `<h3>${f.title}</h3>
+    ${f.fields.map(fl=>`<label>${fl.l}</label>${
+      fl.t==='select'
+      ? `<select data-k="${fl.k}">${fl.opts.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>`
+      : `<input data-k="${fl.k}" type="${fl.t}">`
+    }`).join('')}
+    <div class="warn" id="modalWarn"></div>
+    <div class="actions">
+      <button class="btn secondary" id="btnCancel">Hủy</button>
+      <button class="btn" id="btnSave">Lưu</button>
+    </div>`;
+  ov.classList.add('show');
+  $('#btnCancel').onclick = closeModal;
+  $('#btnSave').onclick = ()=>{
+    const data = {}; let ok = true;
+    f.fields.forEach(fl=>{
+      const el = body.querySelector(`[data-k="${fl.k}"]`);
+      let v = el.value;
+      if(!v){ ok=false; }
+      if(fl.t==='number') v = Number(v);
+      data[fl.k]=v;
+    });
+    if(!ok){ $('#modalWarn').textContent = 'Vui lòng điền đầy đủ thông tin.'; return; }
+    const id = type+'_'+Date.now();
+    if(type==='hang'){
+      if(hangsanxuat.some(h=>h.ten_hang.toLowerCase()===data.ten_hang.toLowerCase())){
+        $('#modalWarn').textContent = `Hãng "${data.ten_hang}" đã tồn tại.`; return;
+      }
+      hangsanxuat.push({_id:id, ...data});
+    }
+    if(type==='sp') sanpham.push({_id:id, ...data});
+    if(type==='kh') khachhang.push({_id:id, ...data});
+    if(type==='pbh'){
+      if(phieubaohanh.some(p=>p.imei===data.imei)){
+        $('#modalWarn').textContent = `IMEI "${data.imei}" đã tồn tại.`; return;
+      }
+      phieubaohanh.push({_id:id, ...data});
+    }
+    closeModal();
+    render();
+  };
+}
+function closeModal(){ $('#overlay').classList.remove('show'); }
+$('#overlay').addEventListener('click', e=>{ if(e.target.id==='overlay') closeModal(); });
+
+// ---------- nav + global search ----------
+$$('.navitem').forEach(btn=>{
+  btn.onclick = ()=>{
+    $$('.navitem').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentTab = btn.dataset.tab;
+    render();
+  };
+});
+$('#globalSearch').addEventListener('input', e=>{
+  const q = e.target.value.trim();
+  if(!q) return;
+  const tabForField = t => { currentTab = t; $$('.navitem').forEach(b=>b.classList.toggle('active', b.dataset.tab===t)); };
+  if(phieubaohanh.some(p=>p.imei.includes(q))){ tabForField('pbh'); renderPBH($('#main'), q); return; }
+  if(sanpham.some(s=>s.ten_san_pham.toLowerCase().includes(q.toLowerCase()))){ tabForField('sp'); renderSP($('#main'), q); return; }
+  if(khachhang.some(k=>k.ho_ten.toLowerCase().includes(q.toLowerCase())||k.so_dien_thoai.includes(q))){ tabForField('kh'); renderKH($('#main'), q); return; }
+  if(hangsanxuat.some(h=>h.ten_hang.toLowerCase().includes(q.toLowerCase()))){ tabForField('hang'); renderHang($('#main'), q); return; }
+});
+
+render();
+</script>
+</body>
+</html>
